@@ -5,6 +5,11 @@ import { OWNER, PROJECTS, HOMELAB, TIKTOK } from './projects.js';
 import { buildGuitar } from './guitar.js';
 import { buildDrone, buildRemote, createFlight } from './drone.js';
 import { buildHomelab } from './homelab.js';
+import { THEME } from './theme.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 
 // Les modèles Kenney sont petits : on les agrandit pour une chambre à l'échelle (1 unité = 1 m).
 const S = 2;
@@ -23,7 +28,10 @@ renderer.toneMapping = THREE.ACESFilmicToneMapping;
 container.appendChild(renderer.domElement);
 
 const scene = new THREE.Scene();
-scene.background = new THREE.Color('#1d1b26');
+scene.background = new THREE.Color(THEME.background);
+// Couleurs de l'interface (panneau, boutons, infobulle)
+const css = document.documentElement.style;
+for (const [k, v] of Object.entries({ '--bg': THEME.background, '--panel': THEME.ui.panel, '--ink': THEME.ui.ink, '--muted': THEME.ui.muted, '--tag': THEME.ui.tag, '--btn': THEME.ui.btn, '--btn-ink': THEME.ui.btnInk, '--tooltip': THEME.ui.tooltip })) css.setProperty(k, v);
 
 const camera = new THREE.PerspectiveCamera(40, innerWidth / innerHeight, 0.1, 100);
 const controls = new OrbitControls(camera, renderer.domElement);
@@ -44,8 +52,9 @@ function fitCamera() {
 fitCamera();
 
 // ---------- Lumières ----------
-scene.add(new THREE.HemisphereLight('#fff4e6', '#3a3550', 1.4));
-const sun = new THREE.DirectionalLight('#ffffff', 2.2);
+const L = THEME.lights;
+scene.add(new THREE.HemisphereLight(L.sky, L.ground, L.ambient));
+const sun = new THREE.DirectionalLight(L.sun, L.sunIntensity);
 sun.position.set(4, 7, 5);
 sun.castShadow = true;
 sun.shadow.mapSize.set(2048, 2048);
@@ -65,11 +74,11 @@ function canvasTexture(w, h, draw) {
 }
 
 const floorTex = canvasTexture(512, 512, (g, w, h) => {
-  const tones = ['#b98a5e', '#b3845a', '#c09265', '#ad7f55'];
+  const tones = THEME.floor.tones;
   for (let i = 0; i < 8; i++) {
     g.fillStyle = tones[i % tones.length];
     g.fillRect(0, i * 64, w, 64);
-    g.fillStyle = 'rgba(0,0,0,.18)';
+    g.fillStyle = THEME.floor.line;
     g.fillRect(0, i * 64, w, 2);
     g.fillRect(((i * 197) % w), i * 64, 2, 64);
   }
@@ -138,13 +147,17 @@ manager.onProgress = (_, loaded, total) => {
 };
 const loader = new GLTFLoader(manager);
 
-function prepare(root) {
+function prepare(root, name) {
+  const colors = { ...THEME.materials, ...(THEME.models[name] || {}) };
   root.traverse((o) => {
     if (!o.isMesh) return;
     // Les matériaux Kenney sont "unlit" : on les passe en matériau standard pour avoir lumière et ombres.
     if (o.material.isMeshBasicMaterial) {
-      o.material = new THREE.MeshStandardMaterial({ color: o.material.color, map: o.material.map, roughness: 0.8 });
+      o.material = new THREE.MeshStandardMaterial({ name: o.material.name, color: o.material.color, map: o.material.map, roughness: 0.8 });
     }
+    // Couleurs du thème (par nom de matériau Kenney : wood, metal, carpet…)
+    const c = colors[o.material.name];
+    if (c) { o.material = o.material.clone(); o.material.color.set(c); }
     o.castShadow = true;
     o.receiveShadow = true;
   });
@@ -154,7 +167,7 @@ function prepare(root) {
 async function place(name, { x = 0, z = 0, y = 0, rot = 0, scale = S, setup } = {}) {
   const gltf = await loader.loadAsync(`models/${name}.glb`);
   const model = gltf.scene;
-  prepare(model);
+  prepare(model, name);
   if (setup) setup(model);
   model.scale.setScalar(scale);
   const obj = new THREE.Group();
@@ -179,14 +192,14 @@ function buildRoom() {
   scene.add(floor);
 
   const wallMat = (c) => new THREE.MeshStandardMaterial({ color: c, roughness: 0.95 });
-  const back = new THREE.Mesh(new THREE.BoxGeometry(ROOM + 0.1, WALL_H, 0.1), wallMat('#f1e6d6'));
+  const back = new THREE.Mesh(new THREE.BoxGeometry(ROOM + 0.1, WALL_H, 0.1), wallMat(THEME.walls.back));
   back.position.set(-0.05, WALL_H / 2, -HALF - 0.05);
-  const left = new THREE.Mesh(new THREE.BoxGeometry(0.1, WALL_H, ROOM + 0.1), wallMat('#e6d6c2'));
+  const left = new THREE.Mesh(new THREE.BoxGeometry(0.1, WALL_H, ROOM + 0.1), wallMat(THEME.walls.left));
   left.position.set(-HALF - 0.05, WALL_H / 2, -0.05);
   for (const w of [back, left]) { w.receiveShadow = true; scene.add(w); }
 
   // Plinthes
-  const trim = new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.6 });
+  const trim = new THREE.MeshStandardMaterial({ color: THEME.trim, roughness: 0.6 });
   const b1 = new THREE.Mesh(new THREE.BoxGeometry(ROOM, 0.1, 0.02), trim);
   b1.position.set(0, 0.05, -HALF + 0.01);
   const b2 = new THREE.Mesh(new THREE.BoxGeometry(0.02, 0.1, ROOM), trim);
@@ -198,7 +211,7 @@ function buildRoom() {
 function addPoster(p, i, { wall, u, y }) {
   const W = 0.62, H = 0.85;
   const group = new THREE.Group();
-  const frame = new THREE.Mesh(new THREE.BoxGeometry(W + 0.06, H + 0.06, 0.03), new THREE.MeshStandardMaterial({ color: '#2b2733', roughness: 0.5 }));
+  const frame = new THREE.Mesh(new THREE.BoxGeometry(W + 0.06, H + 0.06, 0.03), new THREE.MeshStandardMaterial({ color: THEME.posterFrame, roughness: 0.5 }));
   frame.castShadow = true;
   const mat = new THREE.MeshStandardMaterial({ map: posterTexture(p, i), roughness: 0.6 });
   if (p.image) new THREE.TextureLoader().load(p.image, (t) => { t.colorSpace = THREE.SRGBColorSpace; mat.map = t; mat.needsUpdate = true; });
@@ -238,7 +251,7 @@ async function buildFurniture() {
   await place('bedDouble', { x: 1.2, z: -HALF + 1.13 });
   const night = await place('cabinetBedDrawerTable', { x: -0.05, z: -HALF + 0.24 });
   await place('lampSquareTable', { x: -0.05, z: -HALF + 0.22, y: night.userData.top });
-  const lampLight = new THREE.PointLight('#ffb36b', 2.5, 4, 1.5);
+  const lampLight = new THREE.PointLight(L.lamp, L.lampIntensity, 4, 1.5);
   lampLight.position.set(-0.05, night.userData.top + 0.45, -HALF + 0.4);
   scene.add(lampLight);
 
@@ -256,7 +269,7 @@ async function buildFurniture() {
     },
   });
   makeClickable(screen, 'Écran : à propos de moi', showAbout);
-  const glow = new THREE.PointLight('#7b8cff', 1.2, 2.5, 2);
+  const glow = new THREE.PointLight(L.screen, 1.2, 2.5, 2);
   glow.position.set(-HALF + 0.8, top + 0.4, deskZ);
   scene.add(glow);
   await place('computerKeyboard', { x: -HALF + 0.72, z: deskZ, y: top, rot: R });
@@ -278,7 +291,7 @@ async function buildFurniture() {
 // Homelab sur une étagère murale entre la bibliothèque et la table de chevet
 let homelab;
 function addHomelab() {
-  homelab = buildHomelab({ wallZ: -HALF, x: -0.73, shelfY: 0.95, outletY: 0.32 });
+  homelab = buildHomelab({ wallZ: -HALF, x: -0.73, shelfY: 0.95, outletY: 0.32, shelfColor: THEME.shelf });
   scene.add(homelab.group);
   makeClickable(homelab.group, 'Mon homelab', () => {
     focusOn(homelab.focus, new THREE.Vector3(0.4, 0.75, 1.2));
@@ -326,6 +339,27 @@ function addDrone() {
   };
   makeClickable(remote, 'Télécommande : piloter le drone', toggle);
   makeClickable(drone.group, 'Drone : piloter', toggle);
+}
+
+// Néons : bandes LED lumineuses + lumière colorée qui éclaire les murs
+function addNeons() {
+  const N = THEME.neon;
+  if (!N) return;
+  const strip = (color, w, h, d, x, y, z, lights) => {
+    const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), new THREE.MeshBasicMaterial({ color, toneMapped: false }));
+    m.position.set(x, y, z);
+    scene.add(m);
+    for (const p of lights) {
+      const l = new THREE.PointLight(color, 1.6, 3.2, 1.6);
+      l.position.copy(p);
+      scene.add(l);
+    }
+  };
+  const V = (x, y, z) => new THREE.Vector3(x, y, z);
+  if (N.back) strip(N.back, ROOM - 0.1, 0.025, 0.025, 0, WALL_H - 0.12, -HALF + 0.03, [V(-1.2, WALL_H - 0.4, -HALF + 0.4), V(1.2, WALL_H - 0.4, -HALF + 0.4)]);
+  if (N.left) strip(N.left, 0.025, 0.025, ROOM - 0.1, -HALF + 0.03, WALL_H - 0.12, 0, [V(-HALF + 0.4, WALL_H - 0.4, -1.2), V(-HALF + 0.4, WALL_H - 0.4, 1.2)]);
+  if (N.desk) strip(N.desk, 0.02, 0.02, 1.4, -HALF + 0.02, 1.05, 0.35, [V(-HALF + 0.3, 1.2, 0.35)]);
+  if (N.bed) strip(N.bed, 1.7, 0.012, 0.012, 1.2, 0.02, -HALF + 2.3, [V(1.2, 0.12, -HALF + 1.6)]);
 }
 
 // Animation de caméra vers un point (annulée dès que l'utilisateur bouge la vue)
@@ -429,10 +463,21 @@ renderer.domElement.addEventListener('pointerup', (e) => {
   if (o) o.userData.action();
 });
 
+// Bloom : fait briller les néons et les écrans
+let composer = null;
+if (THEME.bloom) {
+  composer = new EffectComposer(renderer);
+  composer.addPass(new RenderPass(scene, camera));
+  const b = THEME.bloom;
+  composer.addPass(new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), b.strength, b.radius, b.threshold));
+  composer.addPass(new OutputPass());
+}
+
 addEventListener('resize', () => {
   camera.aspect = innerWidth / innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(innerWidth, innerHeight);
+  if (composer) composer.setSize(innerWidth, innerHeight);
 });
 
 // ---------- Boucle ----------
@@ -455,7 +500,7 @@ function animate() {
     o.scale.lerp(new THREE.Vector3(s, s, s), 0.15);
   }
   controls.update();
-  renderer.render(scene, camera);
+  if (composer) composer.render(); else renderer.render(scene, camera);
 }
 
 buildRoom();
@@ -463,6 +508,7 @@ buildPosters();
 addHomelab();
 addGuitar();
 addDrone();
+addNeons();
 buildFurniture()
   .then(() => {
     document.getElementById('loader').classList.add('hidden');

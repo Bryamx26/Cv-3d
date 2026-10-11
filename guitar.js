@@ -89,7 +89,7 @@ export function buildGuitar() {
   }
 
   // Cordes
-  const strMat = new THREE.LineBasicMaterial({ color: '#f2f2f2' });
+  const strMat = new THREE.LineBasicMaterial({ color: '#a8a8a8' });
   for (let i = 0; i < 6; i++) {
     const x = -0.02 + i * 0.008;
     const geo = new THREE.BufferGeometry().setFromPoints([

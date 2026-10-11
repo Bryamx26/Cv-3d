@@ -33,9 +33,15 @@ puis ouvre l'adresse affichée. Dans VS Code, l'extension Live Server fait la m�
 - `main.js` : `buildFurniture()` place les meubles (positions en mètres), `buildPosters()` place les posters.
 - `models/` : modèles GLB du Kenney Furniture Kit. Le kit complet (140 meubles) : https://kenney.nl/assets/furniture-kit
 
+## Couleurs
+`theme.js` contient deux thèmes : `gaming` (par défaut : murs sombres, néons violet/cyan, bloom) et `classique` (bois clair).
+Change `ACTIVE` pour basculer, ou modifie les couleurs : murs, sol, matériaux des meubles (`materials`),
+couleurs propres à un modèle (`models`, ex. le lit ou la chaise), néons, lumières et panneau d'infos.
+
 ## Structure
 - `index.html` : page + styles
 - `main.js` : scène Three.js
+- `theme.js` : couleurs, néons et éclairage
 - `drone.js` : drone, télécommande et contrôleur de vol (clavier, tactile, collisions)
 - `guitar.js` : guitare folk et son support, en primitives Three.js
 - `homelab.js` : Raspberry Pi 5, switch, CPL et câbles, modélisés en primitives Three.js (appareils agrandis ×1,6 pour rester lisibles)

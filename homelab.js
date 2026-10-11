@@ -129,13 +129,14 @@ function cable(points, color) {
  * @param x      centre de l'étagère
  * @param shelfY hauteur du dessus de l'étagère
  * @param outletY hauteur de la prise murale du CPL
+ * @param shelfColor couleur de l'étagère (optionnelle)
  */
-export function buildHomelab({ wallZ, x, shelfY, outletY }) {
+export function buildHomelab({ wallZ, x, shelfY, outletY, shelfColor }) {
   const root = new THREE.Group();
 
   // Étagère murale + équerres (taille réelle)
   const SD = 0.2;
-  root.add(box(0.62, 0.025, SD, M.wood, x, shelfY - 0.0125, wallZ + SD / 2));
+  root.add(box(0.62, 0.025, SD, shelfColor ? mat(shelfColor, { roughness: 0.8 }) : M.wood, x, shelfY - 0.0125, wallZ + SD / 2));
   for (const dx of [-0.24, 0.24]) {
     root.add(box(0.02, 0.12, 0.012, M.bracket, x + dx, shelfY - 0.085, wallZ + 0.006));
     root.add(box(0.02, 0.012, 0.15, M.bracket, x + dx, shelfY - 0.031, wallZ + 0.075));

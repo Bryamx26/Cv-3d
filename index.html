@@ -5,15 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Ma chambre virtuelle</title>
   <style>
-    :root { --bg: #1d1b26; --panel: #fffaf2; --ink: #2b2733; --muted: #6b6475; --accent: #e76f51; }
+    :root { --bg: #1d1b26; --panel: #fffaf2; --ink: #2b2733; --muted: #6b6475; --accent: #e76f51; --tag: #efe7da; --btn: #2b2733; --btn-ink: #fff; --tooltip: #2b2733; }
     * { box-sizing: border-box; }
     html, body { margin: 0; height: 100%; background: var(--bg); font-family: system-ui, -apple-system, "Segoe UI", sans-serif; color: var(--ink); overflow: hidden; }
     #scene { position: fixed; inset: 0; }
     #loader { position: fixed; inset: 0; display: grid; place-items: center; background: var(--bg); color: #fff; font-size: 15px; transition: opacity .5s; z-index: 5; }
     #loader.hidden { opacity: 0; pointer-events: none; }
     #hint { position: fixed; left: 50%; bottom: 16px; transform: translateX(-50%); background: rgba(0,0,0,.55); color: #fff; padding: 8px 14px; border-radius: 999px; font-size: 13px; width: max-content; max-width: calc(100% - 32px); text-align: center; pointer-events: none; }
-    #tooltip { position: fixed; pointer-events: none; background: var(--ink); color: #fff; padding: 5px 10px; border-radius: 6px; font-size: 13px; transform: translate(12px, 12px); display: none; z-index: 3; }
-    #panel { position: fixed; top: 16px; right: 16px; bottom: 16px; width: min(380px, calc(100% - 32px)); background: var(--panel); border-radius: 14px; padding: 24px; box-shadow: 0 10px 40px rgba(0,0,0,.35); transform: translateX(calc(100% + 32px)); transition: transform .35s ease; overflow-y: auto; z-index: 4; }
+    #tooltip { position: fixed; pointer-events: none; background: var(--tooltip); color: #fff; padding: 5px 10px; border-radius: 6px; font-size: 13px; transform: translate(12px, 12px); display: none; z-index: 3; }
+    #panel { position: fixed; top: 16px; right: 16px; bottom: 16px; width: min(380px, calc(100% - 32px)); background: var(--panel); color: var(--ink); border-radius: 14px; padding: 24px; box-shadow: 0 10px 40px rgba(0,0,0,.35); transform: translateX(calc(100% + 32px)); transition: transform .35s ease; overflow-y: auto; z-index: 4; }
     #panel.open { transform: none; }
     #panel h2 { margin: 6px 0 4px; font-size: 24px; }
     #panel .sub { color: var(--muted); margin: 0 0 16px; }
@@ -21,8 +21,8 @@
     #panel img { width: 100%; border-radius: 8px; margin-bottom: 12px; }
     #panel p { line-height: 1.55; }
     #panel .tags { display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0 18px; }
-    #panel .tags span { background: #efe7da; padding: 3px 9px; border-radius: 999px; font-size: 12px; }
-    #panel a.btn { display: inline-block; background: var(--ink); color: #fff; text-decoration: none; padding: 9px 16px; border-radius: 8px; margin: 0 8px 8px 0; }
+    #panel .tags span { background: var(--tag); padding: 3px 9px; border-radius: 999px; font-size: 12px; }
+    #panel a.btn { display: inline-block; background: var(--btn); color: var(--btn-ink); text-decoration: none; padding: 9px 16px; border-radius: 8px; margin: 0 8px 8px 0; }
     #panel ul { padding-left: 18px; }
     #panel li { margin: 6px 0; cursor: pointer; text-decoration: underline; }
     #panel ul.plain li { cursor: default; text-decoration: none; }
