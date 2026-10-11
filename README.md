@@ -61,4 +61,5 @@ couleurs propres à un modèle (`models`, ex. le lit ou la chaise), néons, lumi
 
 ## Licences
 - Modèles 3D : Kenney Furniture Kit, CC0 (domaine public, crédit facultatif), https://kenney.nl
+- Voiture RC : Ferrari 458 Italia par vicent091036, reprise de l'exemple three.js « webgl_materials_car » (https://threejs.org/examples/webgl_materials_car.html), avec ses matériaux. Licence d'origine à vérifier avant un usage commercial.
 - Three.js : MIT

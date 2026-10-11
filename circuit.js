@@ -3,7 +3,7 @@ import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
-import { buildRcCar } from './rccar.js';
+import { loadRcCar } from './rccar.js';
 
 // Circuit RC de nuit : terrain à collines, piste néon, sauts, bosses et chrono.
 // Unités en mètres. La voiture est un buggy 1/10 (~50 cm).
@@ -322,7 +322,7 @@ const colliders = [];
 }
 
 // ---------- Voiture ----------
-const car = buildRcCar();
+const car = await loadRcCar(renderer);
 scene.add(car.group);
 car.group.rotation.order = 'YXZ';
 car.chassis.rotation.order = 'YXZ';
@@ -538,7 +538,7 @@ let camYaw = 0, camY = 0;
 function updateCamera(dt, snap = false) {
   // La caméra reste à distance fixe derrière la voiture ; seul son cap et sa hauteur sont lissés.
   const portrait = innerWidth < innerHeight ? 1.6 : 1;   // sur mobile en portrait, on recule
-  const dist = (camMode === 0 ? 1.9 : 1.0) * portrait, h = (camMode === 0 ? 0.75 : 0.4) * portrait;
+  const dist = (camMode === 0 ? 1.4 : 0.8) * portrait, h = (camMode === 0 ? 0.5 : 0.3) * portrait;
   let d = state.yaw - camYaw;
   d = Math.atan2(Math.sin(d), Math.cos(d));
   camYaw = snap ? state.yaw : camYaw + d * (1 - Math.exp(-dt * 6));

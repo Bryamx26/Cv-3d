@@ -1,4 +1,7 @@
 import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 
 // Voiture RC tout-terrain (buggy 1/10, ~50 cm), en primitives Three.js.
 // Avant de la voiture = -z. Origine au sol, entre les roues.
@@ -88,4 +91,68 @@ export function buildRcCar({ body = '#7b2cbf', accent = '#00e5ff' } = {}) {
 
   root.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
   return { group: root, chassis, wheels, steerers, wheelRadius: R };
+}
+
+// Ferrari 458 Italia de l'exemple three.js « car materials » (modèle de vicent091036),
+// réduite à l'échelle 1/10 d'une voiture RC (~45 cm), avec les matériaux de l'exemple.
+// Même interface que buildRcCar ; en cas d'échec de chargement, on garde le buggy.
+let envCache = null;
+export async function loadRcCar(renderer, { body = '#ff0000', details = '#ffffff', glass = '#ffffff', scale = 0.1 } = {}) {
+  try {
+    if (!envCache) {
+      const pmrem = new THREE.PMREMGenerator(renderer);
+      envCache = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+    }
+    const draco = new DRACOLoader().setDecoderPath('lib/addons/libs/draco/gltf/');
+    const gltf = await new GLTFLoader().setDRACOLoader(draco).loadAsync('models/ferrari/ferrari.glb');
+    const model = gltf.scene.children[0];
+
+    const bodyMat = new THREE.MeshPhysicalMaterial({ color: body, metalness: 1.0, roughness: 0.5, clearcoat: 1.0, clearcoatRoughness: 0.03, envMap: envCache, envMapIntensity: 0.6 });
+    const detailsMat = new THREE.MeshStandardMaterial({ color: details, metalness: 1.0, roughness: 0.5, envMap: envCache, envMapIntensity: 0.6 });
+    const glassMat = new THREE.MeshPhysicalMaterial({ color: glass, metalness: 0.25, roughness: 0, transmission: 1.0, envMap: envCache });
+    model.getObjectByName('body').material = bodyMat;
+    for (const n of ['rim_fl', 'rim_fr', 'rim_rr', 'rim_rl', 'trim']) model.getObjectByName(n).material = detailsMat;
+    model.getObjectByName('glass').material = glassMat;
+    model.traverse((o) => {
+      if (!o.isMesh) return;
+      o.castShadow = true;
+      o.receiveShadow = true;
+      if (o.material.isMeshStandardMaterial && !o.material.envMap) o.material.envMap = envCache;
+    });
+
+    // Ombre de contact de l'exemple
+    const ao = new THREE.Mesh(
+      new THREE.PlaneGeometry(0.655 * 4, 1.3 * 4),
+      new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load('models/ferrari/ferrari_ao.png'), blending: THREE.MultiplyBlending, toneMapped: false, transparent: true })
+    );
+    ao.rotation.x = -Math.PI / 2;
+    ao.position.y = 0.01;
+    ao.renderOrder = 2;
+    model.add(ao);
+
+    const root = new THREE.Group();
+    const chassis = new THREE.Group();
+    root.add(chassis);
+    model.scale.setScalar(scale);
+    chassis.add(model);
+
+    // Roues : les avant sont placées dans un pivot pour braquer
+    const wheels = [], steerers = [];
+    for (const name of ['wheel_fl', 'wheel_fr', 'wheel_rl', 'wheel_rr']) {
+      const w = model.getObjectByName(name);
+      wheels.push(w);
+      if (name.startsWith('wheel_f')) {
+        const pivot = new THREE.Group();
+        pivot.position.copy(w.position);
+        w.parent.add(pivot);
+        w.position.set(0, 0, 0);
+        pivot.add(w);
+        steerers.push(pivot);
+      }
+    }
+    return { group: root, chassis, wheels, steerers, wheelRadius: 0.358 * scale };
+  } catch (err) {
+    console.warn('Ferrari indisponible, buggy de secours :', err);
+    return buildRcCar();
+  }
 }

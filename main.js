@@ -4,7 +4,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { OWNER, PROJECTS, HOMELAB, TIKTOK } from './projects.js';
 import { buildGuitar } from './guitar.js';
 import { buildDrone, buildRemote, createFlight } from './drone.js';
-import { buildRcCar } from './rccar.js';
+import { loadRcCar } from './rccar.js';
 import { buildHomelab } from './homelab.js';
 import { THEME } from './theme.js';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
@@ -343,8 +343,8 @@ function addDrone() {
 }
 
 // Voiture RC posée au sol : un clic emmène au circuit extérieur
-function addRcCar() {
-  const car = buildRcCar();
+async function addRcCar() {
+  const car = await loadRcCar(renderer);
   car.group.position.set(2.0, 0, 0.75);
   car.group.rotation.y = 2.4;
   scene.add(car.group);
@@ -519,8 +519,7 @@ addHomelab();
 addGuitar();
 addDrone();
 addNeons();
-addRcCar();
-buildFurniture()
+Promise.all([buildFurniture(), addRcCar()])
   .then(() => {
     document.getElementById('loader').classList.add('hidden');
     renderer.setAnimationLoop(animate);
