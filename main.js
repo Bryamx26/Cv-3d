@@ -4,6 +4,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { OWNER, PROJECTS, HOMELAB, TIKTOK } from './projects.js';
 import { buildGuitar } from './guitar.js';
 import { buildDrone, buildRemote, createFlight } from './drone.js';
+import { buildRcCar } from './rccar.js';
 import { buildHomelab } from './homelab.js';
 import { THEME } from './theme.js';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
@@ -341,6 +342,15 @@ function addDrone() {
   makeClickable(drone.group, 'Drone : piloter', toggle);
 }
 
+// Voiture RC posée au sol : un clic emmène au circuit extérieur
+function addRcCar() {
+  const car = buildRcCar();
+  car.group.position.set(2.0, 0, 0.75);
+  car.group.rotation.y = 2.4;
+  scene.add(car.group);
+  makeClickable(car.group, 'Voiture RC : aller au circuit', () => { location.href = 'circuit.html'; });
+}
+
 // Néons : bandes LED lumineuses + lumière colorée qui éclaire les murs
 function addNeons() {
   const N = THEME.neon;
@@ -509,6 +519,7 @@ addHomelab();
 addGuitar();
 addDrone();
 addNeons();
+addRcCar();
 buildFurniture()
   .then(() => {
     document.getElementById('loader').classList.add('hidden');

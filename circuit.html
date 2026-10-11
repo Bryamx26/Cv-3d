@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Circuit RC</title>
+  <style>
+    * { box-sizing: border-box; }
+    html, body { margin: 0; height: 100%; background: #07060d; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; color: #fff; overflow: hidden; }
+    #scene { position: fixed; inset: 0; }
+    #loader { position: fixed; inset: 0; display: grid; place-items: center; background: #07060d; font-size: 15px; z-index: 9; transition: opacity .5s; }
+    #loader.hidden { opacity: 0; pointer-events: none; }
+    .box { background: rgba(14, 11, 26, .78); border: 1px solid #ffffff1f; border-radius: 12px; backdrop-filter: blur(4px); }
+    #dash { position: fixed; top: 16px; left: 16px; padding: 12px 16px; display: grid; grid-template-columns: auto auto; gap: 2px 16px; align-items: baseline; font-size: 13px; z-index: 3; }
+    #dash .big { grid-column: span 2; font-size: 38px; font-weight: 800; line-height: 1; color: #00e5ff; }
+    #dash .big small { font-size: 14px; color: #a39dbd; font-weight: 600; }
+    #dash span.l { color: #a39dbd; }
+    #dash b { font-variant-numeric: tabular-nums; }
+    #minimap { position: fixed; top: 16px; right: 16px; width: 130px; height: 130px; border-radius: 12px; z-index: 3; }
+    #help { position: fixed; left: 16px; bottom: 16px; padding: 10px 14px; font-size: 12px; line-height: 1.7; z-index: 3; }
+    #help kbd { background: #fff2; border-radius: 4px; padding: 0 5px; font-family: inherit; }
+    #back { position: fixed; right: 16px; bottom: 16px; z-index: 3; background: #7b2cbf; color: #fff; text-decoration: none; padding: 10px 16px; border-radius: 10px; font-size: 14px; font-weight: 600; }
+    #msg { position: fixed; left: 50%; top: 22%; transform: translate(-50%, -10px); font-size: 34px; font-weight: 800; text-shadow: 0 0 18px #ff2bd6, 0 0 4px #000; opacity: 0; transition: opacity .25s, transform .25s; pointer-events: none; z-index: 4; text-align: center; width: max-content; max-width: calc(100% - 32px); }
+    #msg.show { opacity: 1; transform: translate(-50%, 0); }
+    #touch { position: fixed; inset: auto 0 20px 0; display: none; justify-content: space-between; align-items: flex-end; padding: 0 20px; pointer-events: none; z-index: 5; }
+    body.touch #touch { display: flex; }
+    body.touch #help { display: none; }
+    body.touch #back { top: 156px; bottom: auto; padding: 8px 12px; font-size: 13px; }
+    #joystick { width: 130px; height: 130px; border-radius: 50%; background: rgba(255,255,255,.15); border: 2px solid rgba(255,255,255,.35); display: grid; place-items: center; pointer-events: auto; touch-action: none; }
+    #joystick span { width: 54px; height: 54px; border-radius: 50%; background: rgba(255,255,255,.75); }
+    .btns { display: flex; flex-direction: column; gap: 12px; pointer-events: auto; }
+    .btns button { width: 70px; height: 70px; border-radius: 50%; border: 2px solid rgba(255,255,255,.35); background: rgba(255,255,255,.18); color: #fff; font-size: 13px; font-weight: 700; touch-action: none; }
+    @media (max-width: 520px) { #dash .big { font-size: 30px; } #minimap { width: 100px; height: 100px; } }
+  </style>
+  <script type="importmap">
+    { "imports": { "three": "./lib/three.module.js", "three/addons/": "./lib/addons/" } }
+  </script>
+</head>
+<body>
+  <div id="scene"></div>
+  <div id="loader">Préparation du circuit…</div>
+  <div id="dash" class="box">
+    <div class="big"><span id="speed">0</span> <small>km/h</small></div>
+    <span class="l">Tour</span><b id="lap-time">--:--.--</b>
+    <span class="l">Record</span><b id="best">--:--.--</b>
+    <span class="l">Tours</span><b id="laps">0</b>
+  </div>
+  <canvas id="minimap" class="box"></canvas>
+  <div id="msg"></div>
+  <div id="help" class="box">
+    <kbd>Z</kbd>/<kbd>↑</kbd> accélérer · <kbd>S</kbd>/<kbd>↓</kbd> freiner, reculer · <kbd>Q</kbd><kbd>D</kbd>/<kbd>←</kbd><kbd>→</kbd> tourner<br>
+    <kbd>Espace</kbd> frein à main (drift) · <kbd>R</kbd> remettre sur la piste · <kbd>C</kbd> caméra · <kbd>Échap</kbd> retour
+  </div>
+  <a id="back" href="index.html">← Retour à la chambre</a>
+  <div id="touch">
+    <div id="joystick"><span></span></div>
+    <div class="btns"><button id="btn-reset">RESET</button><button id="btn-brake">DRIFT</button></div>
+  </div>
+  <script type="module" src="./circuit.js"></script>
+</body>
+</html>
