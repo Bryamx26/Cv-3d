@@ -1,7 +1,8 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { OWNER, PROJECTS, HOMELAB } from './projects.js';
+import { OWNER, PROJECTS, HOMELAB, TIKTOK } from './projects.js';
+import { buildGuitar } from './guitar.js';
 import { buildHomelab } from './homelab.js';
 
 // Les modèles Kenney sont petits : on les agrandit pour une chambre à l'échelle (1 unité = 1 m).
@@ -284,6 +285,16 @@ function addHomelab() {
   });
 }
 
+// Guitare sur son support contre le mur de gauche : ouvre le TikTok
+function addGuitar() {
+  const guitar = buildGuitar();
+  guitar.position.set(-HALF + 0.3, 0, -1.35);
+  guitar.rotation.y = Math.PI / 2;
+  guitar.userData.hoverable = true;
+  scene.add(guitar);
+  makeClickable(guitar, 'Mon TikTok', () => window.open(TIKTOK, '_blank', 'noopener'));
+}
+
 // Animation de caméra vers un point (annulée dès que l'utilisateur bouge la vue)
 let camTween = null;
 function focusOn(target, offset) {
@@ -416,6 +427,7 @@ function animate() {
 buildRoom();
 buildPosters();
 addHomelab();
+addGuitar();
 buildFurniture()
   .then(() => {
     document.getElementById('loader').classList.add('hidden');

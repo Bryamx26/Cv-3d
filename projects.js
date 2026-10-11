@@ -7,6 +7,7 @@ export const OWNER = {
   about: "Bienvenue dans ma chambre virtuelle. Clique sur les posters pour découvrir mes projets, ou sur l'ordinateur pour en savoir plus sur moi.",
   links: [
     { label: 'GitHub', url: 'https://github.com/Bryamx26' },
+    { label: 'TikTok', url: 'https://www.tiktok.com/@bryamx26' },
   ],
 };
 
@@ -72,3 +73,6 @@ export const HOMELAB = {
   services: ['Docker', 'Ajoute ici tes services (Pi-hole, Home Assistant, k3s…)'],
   url: '',
 };
+
+// La guitare ouvre ce lien au clic.
+export const TIKTOK = 'https://www.tiktok.com/@bryamx26';

@@ -5,6 +5,7 @@
 Une chambre 3D interactive pour présenter tes projets : 5 posters cliquables (un par projet),
 un écran et une tour de PC qui ouvrent une fiche « à propos », et ton homelab
 (2 Raspberry Pi 5, switch 5 ports, CPL au mur) sur une étagère : clique dessus pour zoomer.
+La guitare ouvre ton TikTok (lien dans `TIKTOK`, `projects.js`).
 
 ![Homelab](apercu-homelab.png)
 
@@ -24,6 +25,7 @@ puis ouvre l'adresse affichée. Dans VS Code, l'extension Live Server fait la m�
 ## Structure
 - `index.html` : page + styles
 - `main.js` : scène Three.js
+- `guitar.js` : guitare folk et son support, en primitives Three.js
 - `homelab.js` : Raspberry Pi 5, switch, CPL et câbles, modélisés en primitives Three.js (appareils agrandis ×1,6 pour rester lisibles)
 - `lib/` : Three.js r169 (copie locale, aucune dépendance CDN)
 
