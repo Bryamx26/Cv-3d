@@ -301,7 +301,7 @@ let flight;
 function addDrone() {
   const drone = buildDrone();
   drone.group.position.set(0.15, 0.02, 1.25);
-  drone.group.rotation.y = Math.PI / 4;
+  drone.group.rotation.y = -3 * Math.PI / 4; // caméra FPV tournée vers le spectateur
   scene.add(drone.group);
   const remote = buildRemote();
   remote.position.set(0.7, 0.02, 1.5);

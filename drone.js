@@ -5,62 +5,114 @@ import * as THREE from 'three';
 const mat = (color, extra = {}) => new THREE.MeshStandardMaterial({ color, roughness: 0.5, ...extra });
 const shadow = (o) => { o.traverse((m) => { if (m.isMesh) { m.castShadow = true; m.receiveShadow = true; } }); return o; };
 
+// Tiny whoop FPV façon BETAFPV Meteor75 / Air65 : 4 hélices dans des conduits bleus,
+// canopy blanche, caméra FPV inclinée, antenne, batterie dessous.
+// Modélisé en taille réelle (75 mm entre moteurs en diagonale) puis agrandi par K.
+const K = 3.5;
 export function buildDrone() {
   const root = new THREE.Group();   // position / cap (yaw)
   const body = new THREE.Group();   // inclinaison en vol
   root.add(body);
+  const model = new THREE.Group();
+  model.scale.setScalar(K);
+  body.add(model);
 
-  const shell = mat('#e8e8ec');
-  const dark = mat('#26282e');
-  const accent = mat('#ff5a1f');
+  const blue = mat('#5fb8f5', { roughness: 0.35 });
+  const blueDark = mat('#3d9be0', { roughness: 0.4 });
+  const white = mat('#f4f6f8', { roughness: 0.3 });
+  const black = mat('#15171b', { roughness: 0.5 });
+  const silver = mat('#c7ccd2', { metalness: 0.85, roughness: 0.25 });
+  const pcb = mat('#1c2b22', { roughness: 0.6 });
+  const m = (geo, material, x = 0, y = 0, z = 0) => { const o = new THREE.Mesh(geo, material); o.position.set(x, y, z); model.add(o); return o; };
 
-  const core = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.045, 0.16), shell);
-  core.position.y = 0.06;
-  const lid = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.02, 0.11), dark);
-  lid.position.y = 0.09;
-  const stripe = new THREE.Mesh(new THREE.BoxGeometry(0.112, 0.008, 0.04), accent);
-  stripe.position.set(0, 0.07, -0.03);
-  // Caméra à l'avant (-z = avant du drone)
-  const gimbal = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.035, 0.03), dark);
-  gimbal.position.set(0, 0.04, -0.09);
-  const lens = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.01, 16), mat('#0b0d12', { metalness: 0.8, roughness: 0.1 }));
-  lens.rotation.x = Math.PI / 2;
-  lens.position.set(0, 0.04, -0.106);
-  body.add(core, lid, stripe, gimbal, lens);
-
+  const D = 0.0265;                 // demi-écart des moteurs
+  const R = 0.022;                  // rayon intérieur des conduits
+  const ductY = 0.004, ductH = 0.010;
   const props = [];
-  const ledFront = new THREE.MeshBasicMaterial({ color: '#30d158' });
-  const ledBack = new THREE.MeshBasicMaterial({ color: '#ff3b30' });
   for (const [sx, sz] of [[1, 1], [-1, 1], [1, -1], [-1, -1]]) {
-    const end = new THREE.Vector3(sx * 0.15, 0.065, sz * 0.15);
-    const arm = new THREE.Mesh(new THREE.BoxGeometry(0.018, 0.014, end.length() * 0.95), dark);
-    arm.position.set(end.x / 2, 0.065, end.z / 2);
-    arm.rotation.y = Math.atan2(end.x, end.z);
-    const motor = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.02, 0.03, 16), dark);
-    motor.position.set(end.x, 0.075, end.z);
-    const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.006, 0.008, 0.06, 8), dark);
-    leg.position.set(end.x, 0.03, end.z);
-    const led = new THREE.Mesh(new THREE.SphereGeometry(0.007, 8, 8), sz < 0 ? ledFront : ledBack);
-    led.position.set(end.x, 0.06, end.z);
-    // Hélice : 2 pales + disque flou visible quand elle tourne vite
-    const prop = new THREE.Group();
-    prop.position.set(end.x, 0.093, end.z);
-    for (const a of [0, Math.PI]) {
-      const blade = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.003, 0.014), mat('#3a3d45'));
-      blade.position.x = Math.cos(a) * 0.055;
-      blade.rotation.x = 0.15;
-      prop.add(blade);
+    const x = sx * D, z = sz * D;
+    // Conduit : paroi ouverte + lèvres haut et bas
+    const wall = m(new THREE.CylinderGeometry(R, R, ductH, 40, 1, true), new THREE.MeshStandardMaterial({ color: '#5fb8f5', roughness: 0.35, side: THREE.DoubleSide }), x, ductY + ductH / 2, z);
+    wall.castShadow = true;
+    for (const y of [ductY, ductY + ductH]) {
+      const lip = m(new THREE.TorusGeometry(R, 0.0012, 8, 40), blueDark, x, y, z);
+      lip.rotation.x = Math.PI / 2;
     }
-    const blur = new THREE.Mesh(new THREE.CircleGeometry(0.11, 32), new THREE.MeshBasicMaterial({ color: '#9aa0aa', transparent: true, opacity: 0, depthWrite: false, side: THREE.DoubleSide }));
+    // Support moteur au fond du conduit + 3 rayons
+    m(new THREE.CylinderGeometry(0.0055, 0.0055, 0.0015, 20), blue, x, ductY + 0.001, z);
+    for (let i = 0; i < 3; i++) {
+      const a = (i / 3) * Math.PI * 2 + (sx * sz > 0 ? 0.5 : -0.5);
+      const spoke = m(new THREE.BoxGeometry(R, 0.0014, 0.0025), blue, x + Math.cos(a) * R / 2, ductY + 0.001, z + Math.sin(a) * R / 2);
+      spoke.rotation.y = -a;
+    }
+    // Moteur brushless : stator argent + cloche bleue
+    m(new THREE.CylinderGeometry(0.0045, 0.0045, 0.004, 20), silver, x, ductY + 0.0035, z);
+    m(new THREE.CylinderGeometry(0.0047, 0.0047, 0.003, 20), blueDark, x, ductY + 0.0068, z);
+    // Hélice 4 pales (translucide) + disque flou à pleine vitesse
+    const prop = new THREE.Group();
+    prop.position.set(x, ductY + 0.0092, z);
+    const blades = [];
+    const bladeMat = new THREE.MeshStandardMaterial({ color: '#d9dde3', roughness: 0.3, transparent: true, opacity: 0.85 });
+    for (let i = 0; i < 4; i++) {
+      const pivot = new THREE.Group();
+      pivot.rotation.y = (i / 4) * Math.PI * 2;
+      const blade = new THREE.Mesh(new THREE.BoxGeometry(0.017, 0.0006, 0.0065), bladeMat);
+      blade.position.x = 0.0105;
+      blade.rotation.x = 0.3;
+      pivot.add(blade);
+      prop.add(pivot);
+      blades.push(pivot);
+    }
+    prop.add(new THREE.Mesh(new THREE.CylinderGeometry(0.0022, 0.0022, 0.002, 12), silver));
+    const blur = new THREE.Mesh(new THREE.CircleGeometry(0.0205, 32), new THREE.MeshBasicMaterial({ color: '#c9d2dc', transparent: true, opacity: 0, depthWrite: false, side: THREE.DoubleSide }));
     blur.rotation.x = -Math.PI / 2;
     prop.add(blur);
-    prop.userData.blur = blur;
-    prop.userData.dir = sx * sz;
+    prop.userData = { blur, blades, dir: sx * sz };
+    model.add(prop);
     props.push(prop);
-    body.add(arm, motor, leg, led, prop);
   }
+
+  // Cadre central reliant les conduits
+  m(new THREE.BoxGeometry(0.03, 0.002, 0.03), blue, 0, ductY + 0.001, 0);
+  for (const r of [Math.PI / 4, -Math.PI / 4]) {
+    const brace = m(new THREE.BoxGeometry(0.062, 0.002, 0.006), blue, 0, ductY + 0.001, 0);
+    brace.rotation.y = r;
+  }
+  // Contrôleur de vol (carte) + composants
+  m(new THREE.BoxGeometry(0.026, 0.0016, 0.026), pcb, 0, ductY + 0.004, 0);
+  m(new THREE.BoxGeometry(0.006, 0.0012, 0.006), black, 0.005, ductY + 0.0054, -0.004);
+  m(new THREE.BoxGeometry(0.004, 0.0012, 0.004), silver, -0.006, ductY + 0.0054, 0.006);
+  // Canopy blanche
+  const canopy = m(new THREE.BoxGeometry(0.018, 0.012, 0.024), white, 0, ductY + 0.011, 0.002);
+  canopy.geometry.translate(0, 0, 0);
+  m(new THREE.CylinderGeometry(0.009, 0.009, 0.018, 20, 1, false, 0, Math.PI), white, 0, ductY + 0.017, 0.002).rotation.set(0, 0, Math.PI / 2);
+  // Caméra FPV à l'avant (-z), inclinée vers le haut
+  const cam = new THREE.Group();
+  cam.position.set(0, ductY + 0.013, -0.012);
+  cam.rotation.x = 0.35;
+  const camBody = new THREE.Mesh(new THREE.BoxGeometry(0.012, 0.012, 0.01), black);
+  const lens = new THREE.Mesh(new THREE.CylinderGeometry(0.0045, 0.005, 0.006, 20), black);
+  lens.rotation.x = Math.PI / 2;
+  lens.position.z = -0.007;
+  const glass = new THREE.Mesh(new THREE.CircleGeometry(0.0035, 20), new THREE.MeshStandardMaterial({ color: '#1a2a5a', metalness: 0.9, roughness: 0.05 }));
+  glass.position.z = -0.0101;
+  glass.rotation.y = Math.PI;
+  cam.add(camBody, lens, glass);
+  model.add(cam);
+  // Antenne VTX noire à l'arrière
+  const ant = m(new THREE.CylinderGeometry(0.0012, 0.0012, 0.024, 8), black, 0, ductY + 0.027, 0.014);
+  ant.rotation.x = 0.45;
+  const tip = m(new THREE.CylinderGeometry(0.0022, 0.0022, 0.007, 10), black, 0, ductY + 0.037, 0.0185);
+  tip.rotation.x = 0.45;
+  // Batterie sous le cadre + LED de statut
+  m(new THREE.BoxGeometry(0.012, 0.0035, 0.032), black, 0, ductY - 0.0018, 0);
+  m(new THREE.BoxGeometry(0.0122, 0.0036, 0.008), mat('#ffbe0b'), 0, ductY - 0.0018, 0.008);
+  const led = m(new THREE.SphereGeometry(0.0015, 8, 8), new THREE.MeshBasicMaterial({ color: '#4cc9f0' }), 0, ductY + 0.006, 0.012);
+
+  // Le drone repose sur sa batterie : on le remonte pour qu'elle touche le sol
+  model.position.y = (0.0036 - ductY) * K;
   shadow(root);
-  return { group: root, body, props, radius: 0.22 };
+  return { group: root, body, props, radius: (D + R + 0.002) * K, led };
 }
 
 export function buildRemote() {
@@ -213,7 +265,7 @@ export function createFlight({ drone, camera, controls, bounds, getObstacles }) 
     for (const p of drone.props) {
       p.rotation.y += p.userData.dir * spin * 60 * dt;
       p.userData.blur.material.opacity = Math.max(0, spin - 0.4) * 0.5;
-      p.children[0].visible = p.children[1].visible = spin < 0.6;
+      for (const b of p.userData.blades) b.visible = spin < 0.6;
     }
 
     // Déplacement axe par axe avec collisions (murs + meubles)
