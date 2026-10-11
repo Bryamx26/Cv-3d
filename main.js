@@ -3,6 +3,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { OWNER, PROJECTS, HOMELAB, TIKTOK } from './projects.js';
 import { buildGuitar } from './guitar.js';
+import { buildDrone, buildRemote, createFlight } from './drone.js';
 import { buildHomelab } from './homelab.js';
 
 // Les modèles Kenney sont petits : on les agrandit pour une chambre à l'échelle (1 unité = 1 m).
@@ -295,6 +296,38 @@ function addGuitar() {
   makeClickable(guitar, 'Mon TikTok', () => window.open(TIKTOK, '_blank', 'noopener'));
 }
 
+// Drone sur le tapis + télécommande : un clic sur la télécommande lance le pilotage
+let flight;
+function addDrone() {
+  const drone = buildDrone();
+  drone.group.position.set(0.15, 0.02, 1.25);
+  drone.group.rotation.y = Math.PI / 4;
+  scene.add(drone.group);
+  const remote = buildRemote();
+  remote.position.set(0.7, 0.02, 1.5);
+  remote.rotation.y = -0.3;
+  scene.add(remote);
+
+  // Obstacles : tout objet posé dans la pièce (sauf le sol, les murs, le tapis, le drone et la télécommande)
+  const getObstacles = () => scene.children
+    .filter((o) => o !== drone.group && o !== remote && !o.isLight)
+    .map((o) => new THREE.Box3().setFromObject(o))
+    .filter((b) => !b.isEmpty() && b.max.y - b.min.y > 0.05 && b.max.x - b.min.x < 4 && b.max.z - b.min.z < 4);
+
+  flight = createFlight({
+    drone, camera, controls, getObstacles,
+    bounds: { minX: -HALF, maxX: HALF, minZ: -HALF, maxZ: HALF, floor: 0.02, ceil: WALL_H - 0.2 },
+  });
+  const toggle = () => {
+    if (flight.active) { flight.stop(); return; }
+    panel.classList.remove('open');
+    camTween = null;
+    flight.start();
+  };
+  makeClickable(remote, 'Télécommande : piloter le drone', toggle);
+  makeClickable(drone.group, 'Drone : piloter', toggle);
+}
+
 // Animation de caméra vers un point (annulée dès que l'utilisateur bouge la vue)
 let camTween = null;
 function focusOn(target, offset) {
@@ -408,6 +441,7 @@ function animate() {
   const dt = Math.min(clock.getDelta(), 0.1);
   const t = clock.elapsedTime;
   if (homelab) homelab.update(t);
+  if (flight) flight.update(dt, t);
   if (camTween) {
     const k = 1 - Math.exp(-dt * 4);
     controls.target.lerp(camTween.target, k);
@@ -428,6 +462,7 @@ buildRoom();
 buildPosters();
 addHomelab();
 addGuitar();
+addDrone();
 buildFurniture()
   .then(() => {
     document.getElementById('loader').classList.add('hidden');

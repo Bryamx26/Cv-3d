@@ -27,6 +27,19 @@
     #panel li { margin: 6px 0; cursor: pointer; text-decoration: underline; }
     #panel ul.plain li { cursor: default; text-decoration: none; }
     #close { position: absolute; top: 12px; right: 12px; border: 0; background: none; font-size: 24px; cursor: pointer; color: var(--muted); }
+    #flight-hud { position: fixed; top: 16px; left: 16px; background: rgba(20,18,28,.85); color: #fff; padding: 14px 16px; border-radius: 12px; font-size: 13px; line-height: 1.6; z-index: 4; max-width: calc(100% - 32px); }
+    #flight-hud b { color: #ffbe0b; }
+    #flight-hud kbd { background: #fff2; border-radius: 4px; padding: 0 5px; font-family: inherit; }
+    #flight-exit { margin-top: 8px; background: #ff5a1f; color: #fff; border: 0; border-radius: 8px; padding: 7px 14px; font-size: 13px; cursor: pointer; }
+    #flight-touch { position: fixed; inset: auto 0 24px 0; display: flex; justify-content: space-between; align-items: flex-end; padding: 0 24px; pointer-events: none; z-index: 4; }
+    #flight-touch[hidden], #flight-hud[hidden] { display: none; }
+    #joystick { width: 120px; height: 120px; border-radius: 50%; background: rgba(255,255,255,.18); border: 2px solid rgba(255,255,255,.4); display: grid; place-items: center; pointer-events: auto; touch-action: none; }
+    #joystick span { width: 50px; height: 50px; border-radius: 50%; background: rgba(255,255,255,.75); }
+    .fly-btns { display: flex; flex-direction: column; gap: 12px; pointer-events: auto; }
+    .fly-btns button { width: 64px; height: 64px; border-radius: 50%; border: 2px solid rgba(255,255,255,.4); background: rgba(255,255,255,.2); color: #fff; font-size: 24px; touch-action: none; }
+    body.flying #hint { display: none; }
+    #flight-hud .tc, #flight-hud.touch .kb { display: none; }
+    #flight-hud.touch .tc { display: inline; }
   </style>
   <script type="importmap">
     { "imports": { "three": "./lib/three.module.js", "three/addons/": "./lib/addons/" } }
@@ -36,7 +49,19 @@
   <div id="scene"></div>
   <div id="loader"><div>Chargement de la chambre… <span id="progress">0%</span></div></div>
   <div id="tooltip"></div>
-  <div id="hint">Glisse pour tourner, molette pour zoomer, clique sur les posters, l'ordinateur, le homelab ou la guitare</div>
+  <div id="hint">Glisse pour tourner, molette pour zoomer, clique sur les posters, l'ordinateur, le homelab, la guitare ou la télécommande</div>
+  <div id="flight-hud" hidden>
+    <b>Pilotage du drone</b><br>
+    <span class="kb"><kbd>Z</kbd><kbd>Q</kbd><kbd>S</kbd><kbd>D</kbd> ou flèches : se déplacer<br>
+    <kbd>Espace</kbd> monter · <kbd>Maj</kbd> descendre · <kbd>A</kbd>/<kbd>E</kbd> tourner<br>
+    Glisse pour tourner la caméra · <kbd>Échap</kbd> pour atterrir<br></span>
+    <span class="tc">Joystick : se déplacer · ▲▼ : monter/descendre<br></span>
+    <button id="flight-exit">Atterrir</button>
+  </div>
+  <div id="flight-touch" hidden>
+    <div id="joystick"><span></span></div>
+    <div class="fly-btns"><button id="btn-up" aria-label="Monter">▲</button><button id="btn-down" aria-label="Descendre">▼</button></div>
+  </div>
   <aside id="panel" aria-live="polite"><button id="close" aria-label="Fermer">×</button><div id="panel-body"></div></aside>
   <script type="module" src="./main.js"></script>
 </body>

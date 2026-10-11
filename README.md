@@ -7,6 +7,17 @@ un écran et une tour de PC qui ouvrent une fiche « à propos », et ton homela
 (2 Raspberry Pi 5, switch 5 ports, CPL au mur) sur une étagère : clique dessus pour zoomer.
 La guitare ouvre ton TikTok (lien dans `TIKTOK`, `projects.js`).
 
+## Piloter le drone
+Clique sur la télécommande posée sur le tapis (ou sur le drone) pour décoller :
+- `Z Q S D` (ou `W A S D`) / flèches : se déplacer, par rapport à la caméra
+- `Espace` monter, `Maj` ou `C` descendre, `A` / `E` tourner
+- `Échap`, le bouton « Atterrir » ou un nouveau clic sur la télécommande : atterrir
+- Sur mobile : joystick à gauche, boutons ▲ ▼ à droite
+
+Le drone ne traverse ni les murs ni les meubles.
+
+![Drone](apercu-drone.png)
+
 ![Homelab](apercu-homelab.png)
 
 ## Lancer
@@ -25,6 +36,7 @@ puis ouvre l'adresse affichée. Dans VS Code, l'extension Live Server fait la m�
 ## Structure
 - `index.html` : page + styles
 - `main.js` : scène Three.js
+- `drone.js` : drone, télécommande et contrôleur de vol (clavier, tactile, collisions)
 - `guitar.js` : guitare folk et son support, en primitives Three.js
 - `homelab.js` : Raspberry Pi 5, switch, CPL et câbles, modélisés en primitives Three.js (appareils agrandis ×1,6 pour rester lisibles)
 - `lib/` : Three.js r169 (copie locale, aucune dépendance CDN)
