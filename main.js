@@ -1,7 +1,8 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { OWNER, PROJECTS } from './projects.js';
+import { OWNER, PROJECTS, HOMELAB } from './projects.js';
+import { buildHomelab } from './homelab.js';
 
 // Les modèles Kenney sont petits : on les agrandit pour une chambre à l'échelle (1 unité = 1 m).
 const S = 2;
@@ -27,7 +28,7 @@ const controls = new OrbitControls(camera, renderer.domElement);
 controls.target.set(-0.2, 0.9, -0.2);
 controls.enableDamping = true;
 controls.enablePan = false;
-controls.minDistance = 3;
+controls.minDistance = 1;
 controls.maxDistance = 12;
 controls.maxPolarAngle = Math.PI / 2.1;
 controls.minAzimuthAngle = 0.05;            // la pièce n'a que deux murs :
@@ -272,6 +273,24 @@ async function buildFurniture() {
   await place('trashcan', { x: -HALF + 0.3, z: deskZ - 1.0 });
 }
 
+// Homelab sur une étagère murale entre la bibliothèque et la table de chevet
+let homelab;
+function addHomelab() {
+  homelab = buildHomelab({ wallZ: -HALF, x: -0.73, shelfY: 0.95, outletY: 0.32 });
+  scene.add(homelab.group);
+  makeClickable(homelab.group, 'Mon homelab', () => {
+    focusOn(homelab.focus, new THREE.Vector3(0.4, 0.75, 1.2));
+    showHomelab();
+  });
+}
+
+// Animation de caméra vers un point (annulée dès que l'utilisateur bouge la vue)
+let camTween = null;
+function focusOn(target, offset) {
+  camTween = { target: target.clone(), pos: target.clone().add(offset) };
+}
+controls.addEventListener('start', () => { camTween = null; });
+
 function buildPosters() {
   const spots = [
     { wall: 'left', u: 0.75, y: 1.95 },
@@ -298,6 +317,21 @@ function showProject(p) {
     <div class="tags">${(p.tags || []).map((t) => `<span>${esc(t)}</span>`).join('')}</div>
     ${p.url ? `<a class="btn" href="${esc(p.url)}" target="_blank" rel="noopener">Voir le projet</a>` : ''}`;
   panel.style.setProperty('--accent', p.color);
+  panel.classList.add('open');
+}
+
+function showHomelab() {
+  const h = HOMELAB;
+  panel.style.setProperty('--accent', h.color);
+  body.innerHTML = `
+    <div class="bar"></div>
+    <h2>${esc(h.title)}</h2>
+    <p class="sub">${esc(h.subtitle)}</p>
+    <p>${esc(h.description)}</p>
+    <h3>Matériel</h3>
+    <ul class="plain">${h.hardware.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>
+    <div class="tags">${h.services.map((t) => `<span>${esc(t)}</span>`).join('')}</div>
+    ${h.url ? `<a class="btn" href="${esc(h.url)}" target="_blank" rel="noopener">En savoir plus</a>` : ''}`;
   panel.classList.add('open');
 }
 
@@ -360,7 +394,15 @@ addEventListener('resize', () => {
 // ---------- Boucle ----------
 const clock = new THREE.Clock();
 function animate() {
-  const t = clock.getElapsedTime();
+  const dt = Math.min(clock.getDelta(), 0.1);
+  const t = clock.elapsedTime;
+  if (homelab) homelab.update(t);
+  if (camTween) {
+    const k = 1 - Math.exp(-dt * 4);
+    controls.target.lerp(camTween.target, k);
+    camera.position.lerp(camTween.pos, k);
+    if (camera.position.distanceTo(camTween.pos) < 0.01) camTween = null;
+  }
   ledMat.color.setHSL(0.53, 0.85, 0.5 + Math.sin(t * 2) * 0.12);
   for (const o of clickables) {
     if (!o.userData.hoverable) continue;
@@ -373,6 +415,7 @@ function animate() {
 
 buildRoom();
 buildPosters();
+addHomelab();
 buildFurniture()
   .then(() => {
     document.getElementById('loader').classList.add('hidden');

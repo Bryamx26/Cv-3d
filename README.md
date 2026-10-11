@@ -3,7 +3,10 @@
 ![Aperçu](apercu.png)
 
 Une chambre 3D interactive pour présenter tes projets : 5 posters cliquables (un par projet),
-un écran et une tour de PC qui ouvrent une fiche « à propos ».
+un écran et une tour de PC qui ouvrent une fiche « à propos », et ton homelab
+(2 Raspberry Pi 5, switch 5 ports, CPL au mur) sur une étagère : clique dessus pour zoomer.
+
+![Homelab](apercu-homelab.png)
 
 ## Lancer
 Les modules ES ne marchent pas en ouvrant le fichier directement (file://). Lance un petit serveur dans ce dossier :
@@ -14,13 +17,14 @@ Les modules ES ne marchent pas en ouvrant le fichier directement (file://). Lanc
 puis ouvre l'adresse affichée. Dans VS Code, l'extension Live Server fait la même chose.
 
 ## Personnaliser
-- `projects.js` : ton nom, ta présentation, tes liens et tes 5 projets (titre, description, tags, lien, couleur, image optionnelle).
+- `projects.js` : ton nom, ta présentation, tes liens, tes 5 projets (titre, description, tags, lien, couleur, image optionnelle) et la fiche du homelab (`HOMELAB`).
 - `main.js` : `buildFurniture()` place les meubles (positions en mètres), `buildPosters()` place les posters.
 - `models/` : modèles GLB du Kenney Furniture Kit. Le kit complet (140 meubles) : https://kenney.nl/assets/furniture-kit
 
 ## Structure
 - `index.html` : page + styles
 - `main.js` : scène Three.js
+- `homelab.js` : Raspberry Pi 5, switch, CPL et câbles, modélisés en primitives Three.js (appareils agrandis ×1,6 pour rester lisibles)
 - `lib/` : Three.js r169 (copie locale, aucune dépendance CDN)
 
 ## Licences

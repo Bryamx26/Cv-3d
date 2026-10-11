@@ -57,3 +57,18 @@ export const PROJECTS = [
     image: '',
   },
 ];
+
+// Le homelab (étagère murale) : clique dessus pour zoomer et ouvrir cette fiche.
+export const HOMELAB = {
+  title: 'Mon homelab',
+  subtitle: '2 × Raspberry Pi 5 (8 Go) · switch 5 ports · CPL',
+  color: '#30d158',
+  description: "Deux Raspberry Pi 5 8 Go reliés à un switch Gigabit 5 ports, lui-même raccordé au réseau de la maison par un adaptateur CPL branché au mur.",
+  hardware: [
+    'Raspberry Pi 5 8 Go (×2) avec ventilateur actif',
+    'Switch Gigabit 5 ports',
+    'Adaptateur CPL (courant porteur) branché sur la prise murale',
+  ],
+  services: ['Docker', 'Ajoute ici tes services (Pi-hole, Home Assistant, k3s…)'],
+  url: '',
+};

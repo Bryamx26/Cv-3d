@@ -25,6 +25,7 @@
     #panel a.btn { display: inline-block; background: var(--ink); color: #fff; text-decoration: none; padding: 9px 16px; border-radius: 8px; margin: 0 8px 8px 0; }
     #panel ul { padding-left: 18px; }
     #panel li { margin: 6px 0; cursor: pointer; text-decoration: underline; }
+    #panel ul.plain li { cursor: default; text-decoration: none; }
     #close { position: absolute; top: 12px; right: 12px; border: 0; background: none; font-size: 24px; cursor: pointer; color: var(--muted); }
   </style>
   <script type="importmap">
@@ -35,7 +36,7 @@
   <div id="scene"></div>
   <div id="loader"><div>Chargement de la chambre… <span id="progress">0%</span></div></div>
   <div id="tooltip"></div>
-  <div id="hint">Glisse pour tourner, molette pour zoomer, clique sur un poster ou l'ordinateur</div>
+  <div id="hint">Glisse pour tourner, molette pour zoomer, clique sur un poster, l'ordinateur ou le homelab</div>
   <aside id="panel" aria-live="polite"><button id="close" aria-label="Fermer">×</button><div id="panel-body"></div></aside>
   <script type="module" src="./main.js"></script>
 </body>
