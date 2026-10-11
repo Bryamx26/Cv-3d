@@ -33,13 +33,14 @@ puis ouvre l'adresse affichée. Dans VS Code, l'extension Live Server fait la m�
 - `main.js` : `buildFurniture()` place les meubles (positions en mètres), `buildPosters()` place les posters.
 - `models/` : modèles GLB du Kenney Furniture Kit. Le kit complet (140 meubles) : https://kenney.nl/assets/furniture-kit
 
-## Circuit RC
-Clique sur la voiture RC posée dans la chambre pour aller sur le circuit extérieur (`circuit.html`) :
-grand terrain de nuit avec collines, piste néon, 3 tremplins, 2 sections de bosses, arbres et rochers, chrono et mini-carte.
-- `Z` / `↑` accélérer, `S` / `↓` freiner et reculer, `Q` `D` / `←` `→` tourner
-- `Espace` frein à main (drift), `R` remettre sur la piste, `C` changer de caméra, `Échap` retour à la chambre
-- Sur mobile : joystick + boutons RESET et DRIFT
-Le meilleur tour est gardé dans le navigateur.
+## Course RC
+Clique sur la voiture RC posée dans la chambre pour lancer une course (`circuit.html`) :
+piste de course de nuit avec vibreurs, murets, tribune et projecteurs. Course de 3 tours contre 3 Ferrari
+pilotées par l'ordinateur (bleue, jaune, verte), départ aux feux, position en direct, mini-carte et classement à l'arrivée.
+- Volant, pédale de frein et pédale d'accélérateur à l'écran (souris ou doigt) : tourne le volant en le faisant glisser
+- Au clavier : `Z` / `↑` accélérer, `S` / `↓` freiner et reculer, `Q` `D` / `←` `→` tourner
+- `Espace` frein à main, `R` (ou ↺) remettre sur la piste, `C` changer de caméra, `Échap` retour à la chambre
+Le meilleur tour est gardé dans le navigateur. Le niveau des adversaires se règle dans `DRIVERS` (`skill`) de `circuit.js`.
 
 ![Circuit](apercu-circuit.png)
 

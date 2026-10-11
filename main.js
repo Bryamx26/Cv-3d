@@ -348,7 +348,7 @@ async function addRcCar() {
   car.group.position.set(2.0, 0, 0.75);
   car.group.rotation.y = 2.4;
   scene.add(car.group);
-  makeClickable(car.group, 'Voiture RC : aller au circuit', () => { location.href = 'circuit.html'; });
+  makeClickable(car.group, 'Voiture RC : lancer une course', () => { location.href = 'circuit.html'; });
 }
 
 // Néons : bandes LED lumineuses + lumière colorée qui éclaire les murs
