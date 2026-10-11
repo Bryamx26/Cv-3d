@@ -30,7 +30,7 @@ const controls = new OrbitControls(camera, renderer.domElement);
 controls.target.set(-0.2, 0.9, -0.2);
 controls.enableDamping = true;
 controls.enablePan = false;
-controls.minDistance = 1;
+controls.minDistance = 0.3;
 controls.maxDistance = 12;
 controls.maxPolarAngle = Math.PI / 2.1;
 controls.minAzimuthAngle = 0.05;            // la pièce n'a que deux murs :

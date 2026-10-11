@@ -7,8 +7,8 @@ const shadow = (o) => { o.traverse((m) => { if (m.isMesh) { m.castShadow = true;
 
 // Tiny whoop FPV façon BETAFPV Meteor75 / Air65 : 4 hélices dans des conduits bleus,
 // canopy blanche, caméra FPV inclinée, antenne, batterie dessous.
-// Modélisé en taille réelle (75 mm entre moteurs en diagonale) puis agrandi par K.
-const K = 3.5;
+// Modélisé à la taille réelle (75 mm entre moteurs en diagonale). K permet de l'agrandir.
+const K = 1;
 export function buildDrone() {
   const root = new THREE.Group();   // position / cap (yaw)
   const body = new THREE.Group();   // inclinaison en vol
@@ -246,8 +246,8 @@ export function createFlight({ drone, camera, controls, bounds, getObstacles }) 
     right.crossVectors(fwd, camera.up).normalize();
     wish.set(0, 0, 0).addScaledVector(fwd, iz).addScaledVector(right, ix);
     if (wish.lengthSq() > 1) wish.normalize();
-    wish.multiplyScalar(1.6);
-    wish.y = iy * 1.1;
+    wish.multiplyScalar(1.2);
+    wish.y = iy * 0.9;
 
     const grounded = g.position.y <= bounds.floor + 0.001;
     if (!active) {
@@ -300,12 +300,12 @@ export function createFlight({ drone, camera, controls, bounds, getObstacles }) 
 
     // La caméra suit le drone
     if (active) {
-      tmp.copy(g.position).setY(g.position.y + 0.1).sub(controls.target).multiplyScalar(1 - Math.exp(-dt * 3));
+      tmp.copy(g.position).setY(g.position.y + 0.03).sub(controls.target).multiplyScalar(1 - Math.exp(-dt * 3));
       controls.target.add(tmp);
       camera.position.add(tmp);
       if (zoomIn) {
         const dist = camera.position.distanceTo(controls.target);
-        const want = innerWidth < innerHeight ? 4.5 : 3.2;
+        const want = innerWidth < innerHeight ? 1.3 : 0.9; // drone de 7,5 cm : caméra proche
         if (dist > want) camera.position.lerp(controls.target, (1 - Math.exp(-dt * 2)) * (1 - want / dist));
         else zoomIn = false;
       }
